@@ -10,10 +10,23 @@ import (
 	"github.com/marcoscoutinhodev/url_shortener_api/external/adapter"
 	"github.com/marcoscoutinhodev/url_shortener_api/external/middlewares"
 	"github.com/marcoscoutinhodev/url_shortener_api/external/repository"
+	_ "github.com/marcoscoutinhodev/url_shortener_api/external/swagger"
 	"github.com/marcoscoutinhodev/url_shortener_api/internal/dto"
 	"github.com/marcoscoutinhodev/url_shortener_api/internal/usecase"
 )
 
+// Create url godoc
+// @Summary			Create URL
+// @Description Create URL
+// @Tags				url
+// @Accept			json
+// @Produce			json
+// @Param				request	body			swagger.ShortURLInput	true	"url request"
+// @Success			200			{object}	swagger.ToJSONSuccess
+// @Failure			400			{object}	swagger.ToJSONError
+// @Failure			500			{object}	swagger.ToJSONError
+// @Router			/url		[post]
+// @Security            ApiKeyAuth
 func CreateShortURL(w http.ResponseWriter, r *http.Request) {
 	var shortURLInput dto.ShortURLInput
 	err := json.NewDecoder(r.Body).Decode(&shortURLInput)

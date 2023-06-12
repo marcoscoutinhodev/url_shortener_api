@@ -1,0 +1,146 @@
+definitions:
+  swagger.ShortURLInput:
+    properties:
+      original_url:
+        type: string
+    type: object
+  swagger.ToJSONError:
+    properties:
+      error: {}
+      success:
+        default: false
+        type: boolean
+    type: object
+  swagger.ToJSONSuccess:
+    properties:
+      data: {}
+      success:
+        type: boolean
+    type: object
+  swagger.UserInputSignIn:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  swagger.UserInputSignUp:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+host: localhost:4001
+info:
+  contact:
+    email: marcoscoutinhodev@outlook.com
+    name: Marcos Coutinho
+    url: https://linkedin.com/in/marcoscoutinhodev
+  description: api for url shortener application
+  license:
+    name: The MIT License (MIT)
+    url: https://mit-license.org/
+  title: URL SHORTENER API
+  version: "0.1"
+paths:
+  /url:
+    post:
+      consumes:
+      - application/json
+      description: Create URL
+      parameters:
+      - description: url request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/swagger.ShortURLInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.ToJSONSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ToJSONError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ToJSONError'
+      security:
+      - ApiKeyAuth: []
+      summary: Create URL
+      tags:
+      - url
+  /user/signin:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate User
+      parameters:
+      - description: user request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/swagger.UserInputSignIn'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.ToJSONSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ToJSONError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ToJSONError'
+      summary: Authenticate User
+      tags:
+      - users
+  /user/signup:
+    post:
+      consumes:
+      - application/json
+      description: Create User
+      parameters:
+      - description: user request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/swagger.UserInputSignUp'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/swagger.ToJSONSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ToJSONError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ToJSONError'
+      summary: Create User
+      tags:
+      - users
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: x-access-token
+    type: apiKey
+swagger: "2.0"
