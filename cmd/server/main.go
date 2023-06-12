@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 	"github.com/marcoscoutinhodev/url_shortener_api/external/handler"
+	"github.com/marcoscoutinhodev/url_shortener_api/external/middlewares"
 )
 
 func main() {
@@ -24,7 +25,8 @@ func main() {
 	})
 
 	r.Route("/url", func(r chi.Router) {
-		r.Post("/", handler.CreateShortURL)
+
+		r.Post("/", middlewares.AuthenticationMiddleware(handler.CreateShortURL).(http.HandlerFunc))
 	})
 
 	if err := http.ListenAndServe(os.Getenv("SERVER_PORT"), r); err != nil {

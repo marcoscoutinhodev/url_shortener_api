@@ -16,7 +16,7 @@ func NewEncryptAdapter() *EncryptAdapter {
 func (e EncryptAdapter) GenerateToken(payload map[string]interface{}, minutesToExpire uint) string {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
-	claims["exp"] = time.Now().Add(time.Minute * time.Duration(minutesToExpire))
+	claims["exp"] = time.Now().Add(time.Minute * time.Duration(minutesToExpire)).Unix()
 	for k, v := range payload {
 		claims[k] = v
 	}
