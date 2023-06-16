@@ -2,6 +2,7 @@ package entity
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -42,6 +43,8 @@ func (u *URLEntity) OriginalURLValidator() error {
 	if !isUrl(u.OriginalUrl) {
 		return errors.New(invalidOriginalURLError)
 	}
+
+	u.OriginalUrl = strings.ToLower(u.OriginalUrl)
 
 	return nil
 }

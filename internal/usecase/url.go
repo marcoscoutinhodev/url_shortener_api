@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 
 	"github.com/marcoscoutinhodev/url_shortener_api/internal/dto"
 	"github.com/marcoscoutinhodev/url_shortener_api/internal/entity"
@@ -43,7 +45,17 @@ func (u URLUseCase) CreateShortURL(ctx context.Context, ch chan<- UseCaseRespons
 		return
 	}
 
-	url.ShortUrl = urlEnconded
+	buf := make([]byte, 6)
+	if _, err := rand.Read(buf); err != nil {
+		ch <- UseCaseResponse{
+			Success: false,
+			Data:    "fail to generate a short URL",
+			Code:    500,
+		}
+		return
+	}
+
+	url.ShortUrl = fmt.Sprintf("%x", buf)
 	u.url_repository.CreateShortURL(ctx, url, userId)
 
 	ch <- UseCaseResponse{

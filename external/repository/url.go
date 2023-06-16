@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/marcoscoutinhodev/url_shortener_api/internal/entity"
 	"go.mongodb.org/mongo-driver/bson"
@@ -34,7 +35,7 @@ func (u URLRepository) CreateShortURL(ctx context.Context, url *entity.URLEntity
 		{Key: "is_actived", Value: url.IsActived},
 		{Key: "is_deleted", Value: url.IsDeleted},
 		{Key: "user_id", Value: url.UserID},
-		{Key: "created_at", Value: url.CreatedAt},
+		{Key: "created_at", Value: time.Now()},
 	}); err != nil {
 		panic(err)
 	}
