@@ -40,3 +40,23 @@ func (u URLRepository) CreateShortURL(ctx context.Context, url *entity.URLEntity
 		panic(err)
 	}
 }
+
+func (u URLRepository) GetOriginalURL(ctx context.Context, shortURL string) (*entity.URLEntity, error) {
+	client := NewMongoConnection(ctx)
+	defer client.Disconnect(ctx)
+
+	var url entity.URLEntity
+
+	urls_coll := client.Database("url_shortener").Collection("urls")
+	if err := urls_coll.FindOne(
+		ctx,
+		bson.D{
+			primitive.E{Key: "short_url", Value: shortURL},
+			primitive.E{Key: "is_deleted", Value: false},
+		},
+	).Decode(&url); err != nil {
+		return nil, err
+	}
+
+	return &url, nil
+}

@@ -14,3 +14,8 @@ type URLRepositoryMock struct {
 func (u *URLRepositoryMock) CreateShortURL(ctx context.Context, url *entity.URLEntity, userId string) {
 	u.Called(ctx, url, userId)
 }
+
+func (u *URLRepositoryMock) GetOriginalURL(ctx context.Context, shortURL string) (*entity.URLEntity, error) {
+	args := u.Called(ctx, shortURL)
+	return args.Get(0).(*entity.URLEntity), args.Error(1)
+}

@@ -23,8 +23,13 @@ type EncryptAdapterInterface interface {
 
 type URLRepositoryInterface interface {
 	CreateShortURL(ctx context.Context, url *entity.URLEntity, userId string)
+	GetOriginalURL(ctx context.Context, shortURL string) (*entity.URLEntity, error)
 }
 
 type URLCheckerAdapterInterface interface {
 	IsURLSafe(ctx context.Context, urlEncoded string) bool
+}
+
+type CryptoAdapterInterface interface {
+	GenerateRandomBytes() string
 }

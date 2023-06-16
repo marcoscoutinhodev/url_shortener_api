@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/marcoscoutinhodev/url_shortener_api/external/adapter"
 	"github.com/marcoscoutinhodev/url_shortener_api/external/middlewares"
@@ -39,6 +40,7 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request) {
 	urlUseCase := usecase.NewURLUseCase(
 		repository.NewURLRepository(),
 		adapter.NewURLCheckerAdapter(),
+		adapter.NewCryptoAdapter(),
 	)
 
 	props := r.Context().Value(middlewares.AuthProps{}).(jwt.MapClaims)
@@ -48,6 +50,36 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	go urlUseCase.CreateShortURL(ctx, ch, &shortURLInput, props["sub"].(string))
+
+	select {
+	case res := <-ch:
+		w.WriteHeader(res.Code)
+		json.NewEncoder(w).Encode(ToJson(res.Success, res.Data))
+	case <-ctx.Done():
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ToJson(false, "internal server error, please try again in a few minutes"))
+	}
+}
+
+func GetOriginalURL(w http.ResponseWriter, r *http.Request) {
+	shortUrl := chi.URLParam(r, "shortURL")
+	if shortUrl == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ToJson(false, "no url was provided"))
+		return
+	}
+
+	urlUseCase := usecase.NewURLUseCase(
+		repository.NewURLRepository(),
+		adapter.NewURLCheckerAdapter(),
+		adapter.NewCryptoAdapter(),
+	)
+
+	ch := make(chan usecase.UseCaseResponse)
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second*10)
+	defer cancel()
+
+	go urlUseCase.GetOriginalURL(ctx, ch, shortUrl)
 
 	select {
 	case res := <-ch:

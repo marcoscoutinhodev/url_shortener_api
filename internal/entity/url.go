@@ -23,7 +23,7 @@ type URLEntity struct {
 	TotalAccesses uint64             `json:"total_accesses" bson:"total_accesses"`
 	TotalReports  uint64             `json:"total_reports" bson:"total_reports"`
 	IsActived     bool               `json:"is_actived" bson:"is_actived"`
-	IsDeleted     bool               `json:"is_deleted" bson:"is_deleted"`
+	IsDeleted     bool               `json:"-" bson:"is_deleted"`
 	CreatedAt     time.Time          `json:"created_at,omitempty" bson:"created_at"`
 }
 

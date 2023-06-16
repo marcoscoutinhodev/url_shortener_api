@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"testing"
 
 	"github.com/marcoscoutinhodev/url_shortener_api/internal/dto"
@@ -11,10 +12,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// CreateShortURL
 func TestShouldReturnAnErrorIfOriginalURLValidatorFails(t *testing.T) {
 	urlUseCase := NewURLUseCase(
 		&mocks.URLRepositoryMock{},
 		&mocks.URLCheckerAdapterMock{},
+		&mocks.CryptoAdapterMock{},
 	)
 
 	ch := make(chan UseCaseResponse)
@@ -41,6 +44,7 @@ func TestShouldReturnAnErrorIfOriginalURLIsNotSafe(t *testing.T) {
 	urlUseCase := NewURLUseCase(
 		&mocks.URLRepositoryMock{},
 		&urlCheckerAdapterMock,
+		&mocks.CryptoAdapterMock{},
 	)
 
 	go urlUseCase.CreateShortURL(ctx, ch, &dto.ShortURLInput{
@@ -63,16 +67,20 @@ func TestShouldReturnNilErrorToShortURL(t *testing.T) {
 
 	urlEnconded := base64.RawURLEncoding.EncodeToString([]byte("https://www.google.com"))
 
-	urlEntity := entity.NewURLEntity("https://www.google.com", urlEnconded)
+	urlEntity := entity.NewURLEntity("https://www.google.com", "randombyte")
 	urlRepositoryMock := mocks.URLRepositoryMock{}
 	urlRepositoryMock.On("CreateShortURL", ctx, urlEntity, "any_user_id")
 
 	urlCheckerAdapterMock := mocks.URLCheckerAdapterMock{}
 	urlCheckerAdapterMock.On("IsURLSafe", ctx, urlEnconded).Return(true)
 
+	cryptoAdapterMock := mocks.CryptoAdapterMock{}
+	cryptoAdapterMock.On("GenerateRandomBytes").Return("randombyte")
+
 	urlUseCase := NewURLUseCase(
 		&urlRepositoryMock,
 		&urlCheckerAdapterMock,
+		&cryptoAdapterMock,
 	)
 	go urlUseCase.CreateShortURL(ctx, ch, &dto.ShortURLInput{
 		OriginalURL: "https://www.google.com",
@@ -84,6 +92,32 @@ func TestShouldReturnNilErrorToShortURL(t *testing.T) {
 
 	urlCheckerAdapterMock.AssertExpectations(t)
 	urlCheckerAdapterMock.AssertExpectations(t)
-	// urlRepositoryMock.AssertNumberOfCalls(t, "CreateShortURL", 1)
+	urlRepositoryMock.AssertNumberOfCalls(t, "CreateShortURL", 1)
+	close(ch)
+}
+
+// GetOriginalURL
+func TestShouldReturnAnErrorIfShortURLIsNotFound(t *testing.T) {
+	ctx := context.Background()
+	ch := make(chan UseCaseResponse)
+
+	urlRepositoryMock := mocks.URLRepositoryMock{}
+	urlRepositoryMock.On("GetOriginalURL", ctx, "short_url").Return(&entity.URLEntity{}, errors.New("no matching url"))
+
+	urlUseCase := NewURLUseCase(
+		&urlRepositoryMock,
+		&mocks.URLCheckerAdapterMock{},
+		&mocks.CryptoAdapterMock{},
+	)
+
+	go urlUseCase.GetOriginalURL(ctx, ch, "short_url")
+
+	response := <-ch
+	assert.Equal(t, response.Code, 404)
+	assert.False(t, response.Success)
+	assert.Equal(t, response.Data, "no matching url")
+
+	urlRepositoryMock.AssertExpectations(t)
+
 	close(ch)
 }

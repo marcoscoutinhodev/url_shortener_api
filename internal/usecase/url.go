@@ -2,9 +2,7 @@ package usecase
 
 import (
 	"context"
-	"crypto/rand"
 	"encoding/base64"
-	"fmt"
 
 	"github.com/marcoscoutinhodev/url_shortener_api/internal/dto"
 	"github.com/marcoscoutinhodev/url_shortener_api/internal/entity"
@@ -13,12 +11,14 @@ import (
 type URLUseCase struct {
 	url_repository      URLRepositoryInterface
 	url_checker_adapter URLCheckerAdapterInterface
+	crypto_adapter      CryptoAdapterInterface
 }
 
-func NewURLUseCase(urlRepository URLRepositoryInterface, urlCheckerAdapter URLCheckerAdapterInterface) *URLUseCase {
+func NewURLUseCase(urlRepository URLRepositoryInterface, urlCheckerAdapter URLCheckerAdapterInterface, cryptoAdapter CryptoAdapterInterface) *URLUseCase {
 	return &URLUseCase{
 		url_repository:      urlRepository,
 		url_checker_adapter: urlCheckerAdapter,
+		crypto_adapter:      cryptoAdapter,
 	}
 }
 
@@ -45,21 +45,33 @@ func (u URLUseCase) CreateShortURL(ctx context.Context, ch chan<- UseCaseRespons
 		return
 	}
 
-	buf := make([]byte, 6)
-	if _, err := rand.Read(buf); err != nil {
-		ch <- UseCaseResponse{
-			Success: false,
-			Data:    "fail to generate a short URL",
-			Code:    500,
-		}
-		return
-	}
+	randomBytes := u.crypto_adapter.GenerateRandomBytes()
+	url.ShortUrl = randomBytes
 
-	url.ShortUrl = fmt.Sprintf("%x", buf)
 	u.url_repository.CreateShortURL(ctx, url, userId)
 
 	ch <- UseCaseResponse{
 		Success: true,
 		Code:    201,
+	}
+}
+
+func (u URLUseCase) GetOriginalURL(ctx context.Context, ch chan<- UseCaseResponse, shortUrl string) {
+	defer RecoverPanic(ch, "GetOriginalURL")()
+
+	url, err := u.url_repository.GetOriginalURL(ctx, shortUrl)
+	if err != nil {
+		ch <- UseCaseResponse{
+			Success: false,
+			Data:    "no matching url",
+			Code:    404,
+		}
+		return
+	}
+
+	ch <- UseCaseResponse{
+		Success: true,
+		Data:    url,
+		Code:    200,
 	}
 }
