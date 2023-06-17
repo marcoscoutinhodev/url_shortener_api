@@ -69,6 +69,13 @@ func (u URLUseCase) GetOriginalURL(ctx context.Context, ch chan<- UseCaseRespons
 		return
 	}
 
+	reputation := uint64(100)
+	if url.TotalAccesses != 0 && url.TotalReports != 0 {
+		reputation = 100 - ((url.TotalReports * 100) / url.TotalAccesses)
+	}
+
+	url.Reputation = reputation
+
 	ch <- UseCaseResponse{
 		Success: true,
 		Data:    url,

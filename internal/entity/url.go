@@ -16,12 +16,13 @@ var (
 )
 
 type URLEntity struct {
-	ID            string             `json:"id" bson:"_id"`
+	ID            primitive.ObjectID `json:"id" bson:"_id"`
 	UserID        primitive.ObjectID `json:"-" bson:"user_id"`
 	OriginalUrl   string             `json:"original_url" bson:"original_url"`
 	ShortUrl      string             `json:"short_url" bson:"short_url"`
-	TotalAccesses uint64             `json:"total_accesses" bson:"total_accesses"`
-	TotalReports  uint64             `json:"total_reports" bson:"total_reports"`
+	TotalAccesses uint64             `json:"-" bson:"total_accesses"`
+	TotalReports  uint64             `json:"-" bson:"total_reports"`
+	Reputation    uint64             `json:"reputation" bson:"-"`
 	IsActived     bool               `json:"is_actived" bson:"is_actived"`
 	IsDeleted     bool               `json:"-" bson:"is_deleted"`
 	CreatedAt     time.Time          `json:"created_at,omitempty" bson:"created_at"`
