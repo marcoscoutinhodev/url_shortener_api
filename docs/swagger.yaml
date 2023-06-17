@@ -78,6 +78,37 @@ paths:
       summary: Create URL
       tags:
       - url
+  /url/{short_url}:
+    get:
+      consumes:
+      - application/json
+      description: Get original URL
+      parameters:
+      - description: short_url
+        in: path
+        name: short_url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.ToJSONSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ToJSONError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ToJSONError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get original URL
+      tags:
+      - url
   /user/signin:
     post:
       consumes:

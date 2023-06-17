@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -61,9 +62,21 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Get original url godoc
+// @Summary			Get original URL
+// @Description Get original URL
+// @Tags				url
+// @Accept			json
+// @Produce			json
+// @Param				short_url	path			string	true "short_url"
+// @Success			200				{object}	swagger.ToJSONSuccess
+// @Failure			400				{object}	swagger.ToJSONError
+// @Failure			500				{object}	swagger.ToJSONError
+// @Router			/url/{short_url}			[get]
+// @Security            	ApiKeyAuth
 func GetOriginalURL(w http.ResponseWriter, r *http.Request) {
 	shortUrl := chi.URLParam(r, "shortURL")
-	if shortUrl == "" {
+	if s := strings.ReplaceAll(shortUrl, " ", ""); s == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(ToJson(false, "no url was provided"))
 		return
