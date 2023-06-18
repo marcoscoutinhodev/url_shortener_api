@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"testing"
 
@@ -37,9 +36,8 @@ func TestShouldReturnAnErrorIfOriginalURLIsNotSafe(t *testing.T) {
 	ctx := context.Background()
 	ch := make(chan UseCaseResponse)
 
-	urlEnconded := base64.RawURLEncoding.EncodeToString([]byte("https://www.google.com"))
 	urlCheckerAdapterMock := mocks.URLCheckerAdapterMock{}
-	urlCheckerAdapterMock.On("IsURLSafe", ctx, urlEnconded).Return(false)
+	urlCheckerAdapterMock.On("IsURLSafe", ctx, "https://www.google.com").Return(false)
 
 	urlUseCase := NewURLUseCase(
 		&mocks.URLRepositoryMock{},
@@ -65,14 +63,12 @@ func TestShouldReturnNilErrorToCreateShortURL(t *testing.T) {
 	ctx := context.Background()
 	ch := make(chan UseCaseResponse)
 
-	urlEnconded := base64.RawURLEncoding.EncodeToString([]byte("https://www.google.com"))
-
 	urlEntity := entity.NewURLEntity("https://www.google.com", "randombyte")
 	urlRepositoryMock := mocks.URLRepositoryMock{}
 	urlRepositoryMock.On("CreateShortURL", ctx, urlEntity, "any_user_id")
 
 	urlCheckerAdapterMock := mocks.URLCheckerAdapterMock{}
-	urlCheckerAdapterMock.On("IsURLSafe", ctx, urlEnconded).Return(true)
+	urlCheckerAdapterMock.On("IsURLSafe", ctx, urlEntity.OriginalUrl).Return(true)
 
 	cryptoAdapterMock := mocks.CryptoAdapterMock{}
 	cryptoAdapterMock.On("GenerateRandomBytes").Return("randombyte")
