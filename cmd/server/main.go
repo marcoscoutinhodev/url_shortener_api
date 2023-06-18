@@ -47,6 +47,7 @@ func main() {
 	r.Route("/url", func(r chi.Router) {
 		r.Post("/", middlewares.AuthenticationMiddleware(handler.CreateShortURL).(http.HandlerFunc))
 		r.Get("/{shortURL}", handler.GetOriginalURL)
+		r.Patch("/report/{urlID}", middlewares.AuthenticationMiddleware(handler.ReportURL).(http.HandlerFunc))
 	})
 
 	r.Get("/docs/*", httpSwager.Handler(httpSwager.URL(

@@ -69,9 +69,9 @@ func (u URLUseCase) GetOriginalURL(ctx context.Context, ch chan<- UseCaseRespons
 		return
 	}
 
-	reputation := uint64(100)
+	reputation := float64(100)
 	if url.TotalAccesses != 0 && url.TotalReports != 0 {
-		reputation = 100 - ((url.TotalReports * 100) / url.TotalAccesses)
+		reputation = float64(100) - float64(((url.TotalReports * 100) / url.TotalAccesses))
 	}
 
 	url.Reputation = reputation
@@ -79,6 +79,25 @@ func (u URLUseCase) GetOriginalURL(ctx context.Context, ch chan<- UseCaseRespons
 	ch <- UseCaseResponse{
 		Success: true,
 		Data:    url,
+		Code:    200,
+	}
+}
+
+func (u URLUseCase) ReportURL(ctx context.Context, ch chan<- UseCaseResponse, urlID string) {
+	defer RecoverPanic(ch, "ReportURL")()
+
+	err := u.url_repository.ReportURL(ctx, urlID)
+	if err != nil {
+		ch <- UseCaseResponse{
+			Success: false,
+			Data:    err.Error(),
+			Code:    404,
+		}
+		return
+	}
+
+	ch <- UseCaseResponse{
+		Success: true,
 		Code:    200,
 	}
 }

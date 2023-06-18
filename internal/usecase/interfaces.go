@@ -24,6 +24,7 @@ type EncryptAdapterInterface interface {
 type URLRepositoryInterface interface {
 	CreateShortURL(ctx context.Context, url *entity.URLEntity, userId string)
 	GetOriginalURL(ctx context.Context, shortURL string) (*entity.URLEntity, error)
+	ReportURL(ctx context.Context, shortURL string) error
 }
 
 type URLCheckerAdapterInterface interface {

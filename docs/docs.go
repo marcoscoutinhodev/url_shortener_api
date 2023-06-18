@@ -75,6 +75,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/url/report/{url_id}": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Report URL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "url"
+                ],
+                "summary": "Report URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "url_id",
+                        "name": "url_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ToJSONSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ToJSONError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ToJSONError"
+                        }
+                    }
+                }
+            }
+        },
         "/url/{short_url}": {
             "get": {
                 "security": [

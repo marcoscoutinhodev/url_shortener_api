@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -89,4 +90,55 @@ func (u URLRepository) GetOriginalURL(ctx context.Context, shortURL string) (*en
 	}
 
 	return &url, nil
+}
+
+func (u URLRepository) ReportURL(ctx context.Context, urlID string) error {
+	client := NewMongoConnection(ctx)
+	defer client.Disconnect(ctx)
+
+	session, err := client.StartSession()
+	if err != nil {
+		panic(err)
+	}
+	defer session.EndSession(ctx)
+
+	urlIDAsObjectID, err := primitive.ObjectIDFromHex(urlID)
+	if err != nil {
+		return errors.New("invalid url id")
+	}
+
+	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+		var url entity.URLEntity
+
+		urls_coll := client.Database("url_shortener").Collection("urls")
+		if err := urls_coll.FindOne(
+			ctx,
+			bson.D{
+				primitive.E{Key: "_id", Value: urlIDAsObjectID},
+			},
+		).Decode(&url); err != nil {
+			return nil, err
+		}
+
+		url.TotalReports += 1
+
+		if _, err := urls_coll.UpdateOne(
+			ctx,
+			bson.D{primitive.E{Key: "_id", Value: url.ID}},
+			bson.M{"$set": bson.M{"total_reports": url.TotalReports}},
+		); err != nil {
+			return nil, err
+		}
+
+		if err := session.CommitTransaction(ctx); err != nil {
+			return nil, err
+		}
+
+		return nil, nil
+	})
+	if err != nil {
+		return errors.New("no matching url")
+	}
+
+	return nil
 }

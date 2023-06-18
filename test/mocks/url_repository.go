@@ -19,3 +19,8 @@ func (u *URLRepositoryMock) GetOriginalURL(ctx context.Context, shortURL string)
 	args := u.Called(ctx, shortURL)
 	return args.Get(0).(*entity.URLEntity), args.Error(1)
 }
+
+func (u *URLRepositoryMock) ReportURL(ctx context.Context, urlID string) error {
+	args := u.Called(ctx, urlID)
+	return args.Error(0)
+}

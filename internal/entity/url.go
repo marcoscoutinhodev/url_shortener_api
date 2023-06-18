@@ -22,7 +22,7 @@ type URLEntity struct {
 	ShortUrl      string             `json:"short_url" bson:"short_url"`
 	TotalAccesses uint64             `json:"-" bson:"total_accesses"`
 	TotalReports  uint64             `json:"-" bson:"total_reports"`
-	Reputation    uint64             `json:"reputation" bson:"-"`
+	Reputation    float64            `json:"reputation" bson:"-"`
 	IsActived     bool               `json:"is_actived" bson:"is_actived"`
 	IsDeleted     bool               `json:"-" bson:"is_deleted"`
 	CreatedAt     time.Time          `json:"created_at,omitempty" bson:"created_at"`

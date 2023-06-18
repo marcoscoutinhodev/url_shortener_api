@@ -28,7 +28,7 @@ import (
 // @Failure			400			{object}	swagger.ToJSONError
 // @Failure			500			{object}	swagger.ToJSONError
 // @Router			/url		[post]
-// @Security            ApiKeyAuth
+// @Security		ApiKeyAuth
 func CreateShortURL(w http.ResponseWriter, r *http.Request) {
 	var shortURLInput dto.ShortURLInput
 	err := json.NewDecoder(r.Body).Decode(&shortURLInput)
@@ -68,12 +68,12 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request) {
 // @Tags				url
 // @Accept			json
 // @Produce			json
-// @Param				short_url	path			string	true "short_url"
-// @Success			200				{object}	swagger.ToJSONSuccess
-// @Failure			400				{object}	swagger.ToJSONError
-// @Failure			500				{object}	swagger.ToJSONError
+// @Param				short_url							path			string	true "short_url"
+// @Success			200										{object}	swagger.ToJSONSuccess
+// @Failure			400										{object}	swagger.ToJSONError
+// @Failure			500										{object}	swagger.ToJSONError
 // @Router			/url/{short_url}			[get]
-// @Security            	ApiKeyAuth
+// @Security		ApiKeyAuth
 func GetOriginalURL(w http.ResponseWriter, r *http.Request) {
 	shortUrl := chi.URLParam(r, "shortURL")
 	if s := strings.ReplaceAll(shortUrl, " ", ""); s == "" {
@@ -93,6 +93,48 @@ func GetOriginalURL(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	go urlUseCase.GetOriginalURL(ctx, ch, shortUrl)
+
+	select {
+	case res := <-ch:
+		w.WriteHeader(res.Code)
+		json.NewEncoder(w).Encode(ToJson(res.Success, res.Data))
+	case <-ctx.Done():
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ToJson(false, "internal server error, please try again in a few minutes"))
+	}
+}
+
+// Report url godoc
+// @Summary			Report URL
+// @Description Report URL
+// @Tags				url
+// @Accept			json
+// @Produce			json
+// @Param				url_id								path			string	true "url_id"
+// @Success			200										{object}	swagger.ToJSONSuccess
+// @Failure			400										{object}	swagger.ToJSONError
+// @Failure			500										{object}	swagger.ToJSONError
+// @Router			/url/report/{url_id}	[patch]
+// @Security		ApiKeyAuth
+func ReportURL(w http.ResponseWriter, r *http.Request) {
+	urlID := chi.URLParam(r, "urlID")
+	if s := strings.ReplaceAll(urlID, " ", ""); s == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ToJson(false, "no url was provided"))
+		return
+	}
+
+	urlUseCase := usecase.NewURLUseCase(
+		repository.NewURLRepository(),
+		adapter.NewURLCheckerAdapter(),
+		adapter.NewCryptoAdapter(),
+	)
+
+	ch := make(chan usecase.UseCaseResponse)
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second*10)
+	defer cancel()
+
+	go urlUseCase.ReportURL(ctx, ch, urlID)
 
 	select {
 	case res := <-ch:

@@ -109,6 +109,37 @@ paths:
       summary: Get original URL
       tags:
       - url
+  /url/report/{url_id}:
+    patch:
+      consumes:
+      - application/json
+      description: Report URL
+      parameters:
+      - description: url_id
+        in: path
+        name: url_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.ToJSONSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ToJSONError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ToJSONError'
+      security:
+      - ApiKeyAuth: []
+      summary: Report URL
+      tags:
+      - url
   /user/signin:
     post:
       consumes:

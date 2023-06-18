@@ -61,7 +61,7 @@ func TestShouldReturnAnErrorIfOriginalURLIsNotSafe(t *testing.T) {
 	close(ch)
 }
 
-func TestShouldReturnNilErrorToShortURL(t *testing.T) {
+func TestShouldReturnNilErrorToCreateShortURL(t *testing.T) {
 	ctx := context.Background()
 	ch := make(chan UseCaseResponse)
 
@@ -116,6 +116,79 @@ func TestShouldReturnAnErrorIfShortURLIsNotFound(t *testing.T) {
 	assert.Equal(t, response.Code, 404)
 	assert.False(t, response.Success)
 	assert.Equal(t, response.Data, "no matching url")
+
+	urlRepositoryMock.AssertExpectations(t)
+
+	close(ch)
+}
+
+func TestShouldReturnSuccessOnGetOriginalURL(t *testing.T) {
+	ctx := context.Background()
+	ch := make(chan UseCaseResponse)
+
+	urlRepositoryMock := mocks.URLRepositoryMock{}
+	urlRepositoryMock.On("GetOriginalURL", ctx, "short_url").Return(&entity.URLEntity{}, nil)
+
+	urlUseCase := NewURLUseCase(
+		&urlRepositoryMock,
+		&mocks.URLCheckerAdapterMock{},
+		&mocks.CryptoAdapterMock{},
+	)
+
+	go urlUseCase.GetOriginalURL(ctx, ch, "short_url")
+
+	response := <-ch
+	assert.Equal(t, response.Code, 200)
+	assert.True(t, response.Success)
+
+	urlRepositoryMock.AssertExpectations(t)
+
+	close(ch)
+}
+
+func TestShouldReturnAnErrorIfUrlIDIsNotFound(t *testing.T) {
+	ctx := context.Background()
+	ch := make(chan UseCaseResponse)
+
+	urlRepositoryMock := mocks.URLRepositoryMock{}
+	urlRepositoryMock.On("ReportURL", ctx, "url_id").Return(errors.New("no matching url"))
+
+	urlUseCase := NewURLUseCase(
+		&urlRepositoryMock,
+		&mocks.URLCheckerAdapterMock{},
+		&mocks.CryptoAdapterMock{},
+	)
+
+	go urlUseCase.ReportURL(ctx, ch, "url_id")
+
+	response := <-ch
+	assert.Equal(t, response.Code, 404)
+	assert.False(t, response.Success)
+	assert.Equal(t, response.Data, "no matching url")
+
+	urlRepositoryMock.AssertExpectations(t)
+
+	close(ch)
+}
+
+func TestShouldReturnSuccessOnReportURL(t *testing.T) {
+	ctx := context.Background()
+	ch := make(chan UseCaseResponse)
+
+	urlRepositoryMock := mocks.URLRepositoryMock{}
+	urlRepositoryMock.On("ReportURL", ctx, "url_id").Return(nil)
+
+	urlUseCase := NewURLUseCase(
+		&urlRepositoryMock,
+		&mocks.URLCheckerAdapterMock{},
+		&mocks.CryptoAdapterMock{},
+	)
+
+	go urlUseCase.ReportURL(ctx, ch, "url_id")
+
+	response := <-ch
+	assert.Equal(t, response.Code, 200)
+	assert.True(t, response.Success)
 
 	urlRepositoryMock.AssertExpectations(t)
 
