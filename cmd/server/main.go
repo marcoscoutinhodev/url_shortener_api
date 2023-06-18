@@ -15,7 +15,7 @@ import (
 )
 
 // @Title						URL SHORTENER API
-// @version					0.1
+// @version					1.0.0
 // @description			api for url shortener application
 // @termsOfServices	https://swagger.io/terms/
 
