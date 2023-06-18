@@ -30,7 +30,7 @@ type URLRepositoryInterface interface {
 }
 
 type URLCheckerAdapterInterface interface {
-	IsURLSafe(ctx context.Context, urlEncoded string) bool
+	IsURLSafe(ctx context.Context, url string) bool
 }
 
 type CryptoAdapterInterface interface {

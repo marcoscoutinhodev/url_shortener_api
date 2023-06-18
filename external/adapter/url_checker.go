@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"os"
@@ -13,7 +14,8 @@ func NewURLCheckerAdapter() *URLCheckerAdapter {
 	return &URLCheckerAdapter{}
 }
 
-func (u URLCheckerAdapter) IsURLSafe(ctx context.Context, urlEncoded string) bool {
+func (u URLCheckerAdapter) IsURLSafe(ctx context.Context, url string) bool {
+	urlEncoded := base64.RawURLEncoding.EncodeToString([]byte(url))
 	req, err := http.NewRequestWithContext(
 		ctx,
 		"GET",

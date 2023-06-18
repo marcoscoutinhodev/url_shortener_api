@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"encoding/base64"
 
 	"github.com/marcoscoutinhodev/url_shortener_api/internal/dto"
 	"github.com/marcoscoutinhodev/url_shortener_api/internal/entity"
@@ -35,8 +34,7 @@ func (u URLUseCase) CreateShortURL(ctx context.Context, ch chan<- UseCaseRespons
 		return
 	}
 
-	urlEnconded := base64.RawURLEncoding.EncodeToString([]byte(url.OriginalUrl))
-	if isURLSafe := u.url_checker_adapter.IsURLSafe(ctx, urlEnconded); !isURLSafe {
+	if isURLSafe := u.url_checker_adapter.IsURLSafe(ctx, url.OriginalUrl); !isURLSafe {
 		ch <- UseCaseResponse{
 			Success: false,
 			Data:    "the provided URL is not secure",
