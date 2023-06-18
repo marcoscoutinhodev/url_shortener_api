@@ -44,7 +44,7 @@ info:
     name: The MIT License (MIT)
     url: https://mit-license.org/
   title: URL SHORTENER API
-  version: "0.1"
+  version: 1.0.0
 paths:
   /url:
     post:
