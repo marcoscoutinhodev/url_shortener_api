@@ -145,3 +145,47 @@ func ReportURL(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(ToJson(false, "internal server error, please try again in a few minutes"))
 	}
 }
+
+// Active url godoc
+// @Summary			Active URL
+// @Description Active URL
+// @Tags				url
+// @Accept			json
+// @Produce			json
+// @Param				url_id								path			string	true "url_id"
+// @Success			200										{object}	swagger.ToJSONSuccess
+// @Failure			400										{object}	swagger.ToJSONError
+// @Failure			500										{object}	swagger.ToJSONError
+// @Router			/url/active/{url_id}	[patch]
+// @Security		ApiKeyAuth
+func ActiveURL(w http.ResponseWriter, r *http.Request) {
+	urlID := chi.URLParam(r, "urlID")
+	if s := strings.ReplaceAll(urlID, " ", ""); s == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ToJson(false, "no url was provided"))
+		return
+	}
+
+	urlUseCase := usecase.NewURLUseCase(
+		repository.NewURLRepository(),
+		adapter.NewURLCheckerAdapter(),
+		adapter.NewCryptoAdapter(),
+	)
+
+	ch := make(chan usecase.UseCaseResponse)
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second*10)
+	defer cancel()
+
+	props := r.Context().Value(middlewares.AuthProps{}).(jwt.MapClaims)
+
+	go urlUseCase.ActiveURL(ctx, ch, props["sub"].(string), urlID)
+
+	select {
+	case res := <-ch:
+		w.WriteHeader(res.Code)
+		json.NewEncoder(w).Encode(ToJson(res.Success, res.Data))
+	case <-ctx.Done():
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ToJson(false, "internal server error, please try again in a few minutes"))
+	}
+}

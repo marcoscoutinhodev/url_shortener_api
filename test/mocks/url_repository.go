@@ -24,3 +24,8 @@ func (u *URLRepositoryMock) ReportURL(ctx context.Context, urlID string) error {
 	args := u.Called(ctx, urlID)
 	return args.Error(0)
 }
+
+func (u *URLRepositoryMock) ActiveURL(ctx context.Context, userID, urlID string) error {
+	args := u.Called(ctx, userID, urlID)
+	return args.Error(0)
+}

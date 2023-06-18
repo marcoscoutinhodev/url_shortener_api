@@ -48,6 +48,7 @@ func main() {
 		r.Post("/", middlewares.AuthenticationMiddleware(handler.CreateShortURL).(http.HandlerFunc))
 		r.Get("/{shortURL}", handler.GetOriginalURL)
 		r.Patch("/report/{urlID}", middlewares.AuthenticationMiddleware(handler.ReportURL).(http.HandlerFunc))
+		r.Patch("/active/{urlID}", middlewares.AuthenticationMiddleware(handler.ActiveURL).(http.HandlerFunc))
 	})
 
 	r.Get("/docs/*", httpSwager.Handler(httpSwager.URL(
