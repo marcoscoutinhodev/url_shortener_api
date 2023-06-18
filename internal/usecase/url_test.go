@@ -243,3 +243,52 @@ func TestShouldReturnSuccessOnActiveURL(t *testing.T) {
 
 	close(ch)
 }
+
+func TestShouldReturnAnErrorIfUrlIDIsNotFoundOnDeleteURL(t *testing.T) {
+	ctx := context.Background()
+	ch := make(chan UseCaseResponse)
+
+	urlRepositoryMock := mocks.URLRepositoryMock{}
+	urlRepositoryMock.On("DeleteURL", ctx, "user_id", "url_id").Return(errors.New("no matching url"))
+
+	urlUseCase := NewURLUseCase(
+		&urlRepositoryMock,
+		&mocks.URLCheckerAdapterMock{},
+		&mocks.CryptoAdapterMock{},
+	)
+
+	go urlUseCase.DeleteURL(ctx, ch, "user_id", "url_id")
+
+	response := <-ch
+	assert.Equal(t, response.Code, 404)
+	assert.False(t, response.Success)
+	assert.Equal(t, response.Data, "no matching url")
+
+	urlRepositoryMock.AssertExpectations(t)
+
+	close(ch)
+}
+
+func TestShouldReturnSuccessOnDeleteURL(t *testing.T) {
+	ctx := context.Background()
+	ch := make(chan UseCaseResponse)
+
+	urlRepositoryMock := mocks.URLRepositoryMock{}
+	urlRepositoryMock.On("DeleteURL", ctx, "user_id", "url_id").Return(nil)
+
+	urlUseCase := NewURLUseCase(
+		&urlRepositoryMock,
+		&mocks.URLCheckerAdapterMock{},
+		&mocks.CryptoAdapterMock{},
+	)
+
+	go urlUseCase.DeleteURL(ctx, ch, "user_id", "url_id")
+
+	response := <-ch
+	assert.Equal(t, response.Code, 200)
+	assert.True(t, response.Success)
+
+	urlRepositoryMock.AssertExpectations(t)
+
+	close(ch)
+}

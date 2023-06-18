@@ -200,3 +200,59 @@ func (u URLRepository) ActiveURL(ctx context.Context, userID, urlID string) erro
 
 	return nil
 }
+
+func (u URLRepository) DeleteURL(ctx context.Context, userID, urlID string) error {
+	client := NewMongoConnection(ctx)
+	defer client.Disconnect(ctx)
+
+	session, err := client.StartSession()
+	if err != nil {
+		panic(err)
+	}
+	defer session.EndSession(ctx)
+
+	userIDAsObjectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return errors.New("invalid user id")
+	}
+
+	urlIDAsObjectID, err := primitive.ObjectIDFromHex(urlID)
+	if err != nil {
+		return errors.New("invalid url id")
+	}
+
+	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+		var url entity.URLEntity
+
+		urls_coll := client.Database("url_shortener").Collection("urls")
+		if err := urls_coll.FindOne(
+			ctx,
+			bson.D{
+				primitive.E{Key: "_id", Value: urlIDAsObjectID},
+				primitive.E{Key: "user_id", Value: userIDAsObjectID},
+				primitive.E{Key: "is_deleted", Value: false},
+			},
+		).Decode(&url); err != nil {
+			return nil, err
+		}
+
+		if _, err := urls_coll.UpdateOne(
+			ctx,
+			bson.D{primitive.E{Key: "_id", Value: url.ID}, primitive.E{Key: "user_id", Value: url.UserID}},
+			bson.M{"$set": bson.M{"is_deleted": true}},
+		); err != nil {
+			return nil, err
+		}
+
+		if err := session.CommitTransaction(ctx); err != nil {
+			return nil, err
+		}
+
+		return nil, nil
+	})
+	if err != nil {
+		return errors.New("no matching url")
+	}
+
+	return nil
+}

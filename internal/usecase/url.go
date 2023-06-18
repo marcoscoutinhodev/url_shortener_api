@@ -120,3 +120,22 @@ func (u URLUseCase) ActiveURL(ctx context.Context, ch chan<- UseCaseResponse, us
 		Code:    200,
 	}
 }
+
+func (u URLUseCase) DeleteURL(ctx context.Context, ch chan<- UseCaseResponse, userID, urlID string) {
+	defer RecoverPanic(ch, "ReportURL")()
+
+	err := u.url_repository.DeleteURL(ctx, userID, urlID)
+	if err != nil {
+		ch <- UseCaseResponse{
+			Success: false,
+			Data:    err.Error(),
+			Code:    404,
+		}
+		return
+	}
+
+	ch <- UseCaseResponse{
+		Success: true,
+		Code:    200,
+	}
+}

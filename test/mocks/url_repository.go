@@ -29,3 +29,8 @@ func (u *URLRepositoryMock) ActiveURL(ctx context.Context, userID, urlID string)
 	args := u.Called(ctx, userID, urlID)
 	return args.Error(0)
 }
+
+func (u *URLRepositoryMock) DeleteURL(ctx context.Context, userID, urlID string) error {
+	args := u.Called(ctx, userID, urlID)
+	return args.Error(0)
+}

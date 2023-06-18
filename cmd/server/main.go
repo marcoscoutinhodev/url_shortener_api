@@ -49,13 +49,16 @@ func main() {
 		r.Get("/{shortURL}", handler.GetOriginalURL)
 		r.Patch("/report/{urlID}", middlewares.AuthenticationMiddleware(handler.ReportURL).(http.HandlerFunc))
 		r.Patch("/active/{urlID}", middlewares.AuthenticationMiddleware(handler.ActiveURL).(http.HandlerFunc))
+		r.Delete("/{urlID}", middlewares.AuthenticationMiddleware(handler.DeleteURL).(http.HandlerFunc))
 	})
 
+	serverPort := os.Getenv("SERVER_PORT")
+
 	r.Get("/docs/*", httpSwager.Handler(httpSwager.URL(
-		fmt.Sprintf("http://localhost:%s/docs/doc.json", os.Getenv("SERVER_PORT")),
+		fmt.Sprintf("http://localhost:%s/docs/doc.json", serverPort),
 	)))
 
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("SERVER_PORT")), r); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", serverPort), r); err != nil {
 		panic(err)
 	}
 }
